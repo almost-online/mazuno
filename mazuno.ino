@@ -49,9 +49,9 @@ void draw() {
 
   //  u8g2.setFont(u8g2_font_unifont_t_symbols);
   u8g2.setFont(u8g2_font_8x13_t_symbols);
-  u8g2.drawGlyph(8, menu_height, 0x2603);  /* dec 9731/hex 2603 Snowman */
-  u8g2.drawGlyph(54, menu_height, 0x2605); /* dec 9731/hex 2603 Snowman */
-  u8g2.drawGlyph(94, menu_height, 0x2661); /* dec 9731/hex 2603 Snowman */
+  u8g2.drawGlyph(8, menu_height, 0x2603);  /* hex 2603 Snowman */
+  u8g2.drawGlyph(54, menu_height, 0x2605); /* hex 2605 Star */
+  u8g2.drawGlyph(94, menu_height, 0x2661); /* hex 2661 Heart */
 
   u8g2.setCursor(20, menu_height);
   u8g2.print(step_limit > 0 ? step_limit : 0);
@@ -80,17 +80,17 @@ void draw() {
           break;
         case 2:
           //u8g2.drawCircle(n.x*block_size+block_size/2 + shift, menu_height+n.y*block_size+block_size/2, block_size/2-2);
-          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2605); /* dec 9731/hex 2603 Snowman */
+          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2605); /* hex 2605 Star */
           break;
         case 3:
           //u8g2.drawDisc(n.x*block_size+block_size/2 + shift, menu_height+n.y*block_size+block_size/2, block_size/2-2);
-          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2661); /* dec 9731/hex 2603 Snowman */
+          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2661); /* hex 2661 Heart */
           break;
       }
     }
   }
 
-  u8g2.drawGlyph(x * block_size + shift_x + 1, shift_y + (y + 1) * block_size - 1, 0x2603); /* dec 9731/hex 2603 Snowman */
+  u8g2.drawGlyph(x * block_size + shift_x + 1, shift_y + (y + 1) * block_size - 1, 0x2603); /* hex 2603 Snowman */
 }
 
 void setup() {
