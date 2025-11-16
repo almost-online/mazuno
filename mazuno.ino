@@ -22,8 +22,8 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE); /
 #define STEPS_LIMIT 100
 
 #define SNOWMAN 0x2603 /* hex 2603 Snowman */
-#define HEART 0x2605   /* hex 2605 Heart */
-#define STAR 0x2661    /* hex 2661 Star */
+#define HEART 0x2661   /* hex 2661 Heart (♡) */
+#define STAR 0x2605    /* hex 2605 Star (★) */
 
 typedef struct
 {
