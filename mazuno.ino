@@ -87,11 +87,11 @@ void draw()
         break;
       case 2:
         // u8g2.drawCircle(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X, MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
-        u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
+        u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
         break;
       case 3:
         // u8g2.drawDisc(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X, MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
-        u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
+        u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
         break;
       }
     }
@@ -116,7 +116,7 @@ void setup()
   randomSeed(analogRead(3));
 
   startGame();
-  // openExit()
+  // openExit();  // uncomment this to show exit on start
 }
 
 void gameOver()
