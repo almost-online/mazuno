@@ -1,12 +1,8 @@
 #include <U8g2lib.h>  // u8g2 library for drawing on OLED display - needs to be installed in Arduino IDE first
 #include <Wire.h>
 
-// U8G2_SH1107_128X128_1_HW_I2C u8g2(U8G2_R0);  // final display, 128x128px
-// [page buffer, size = 128 bytes], HW IIC connection
-U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(
-    U8G2_R0,
-    /* reset=*/U8X8_PIN_NONE);  // final display, 128x128px [page buffer, size =
-                                // // 128 bytes], HW IIC connection
+// U8G2_SH1107_128X128_1_HW_I2C u8g2(U8G2_R0);  // final display, 128x128px[page buffer, size = 128 bytes], HW IIC connection
+U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0,  /* reset=*/U8X8_PIN_NONE);  // final display, 128x128px [page buffer, size =128 bytes], HW IIC connection
 
 #define JOYSTICK_X A0
 #define JOYSTICK_Y A1
@@ -26,9 +22,9 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(
 
 #define STEPS_LIMIT 80
 
-#define SNOWMAN 0x2603 /* hex 2603 Snowman */
-#define STAR 0x2605    /* hex 2605 Star */
-#define HEART 0x2661   /* hex 2661 Heart */
+#define SNOWMAN 0x2603 /* hex 2603 Snowman (☃) */
+#define STAR 0x2605    /* hex 2605 Star (★) */
+#define HEART 0x2661   /* hex 2661 Heart (♡) */
 
 #define D_RIGHT 1
 #define D_DOWN 2
@@ -81,21 +77,15 @@ void draw() {
                 case 1:
                     // if (j == 0)
                     //  write half block
-                    //  u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y *
-                    //  BLOCK_SIZE + BLOCK_SIZE / 2, BLOCK_SIZE, BLOCK_SIZE /
-                    //  2);
+                    //  u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y * BLOCK_SIZE + BLOCK_SIZE / 2, BLOCK_SIZE, BLOCK_SIZE / 2);
                     // else
-                    u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X,
-                                 SHIFT_Y + n.y * BLOCK_SIZE, BLOCK_SIZE,
-                                 BLOCK_SIZE);
+                    u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
                     break;
                 case 2:
-                    u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1,
-                                   SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
+                    u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
                     break;
                 case 3:
-                    u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1,
-                                   SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
+                    u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
                     break;
             }
         }
@@ -204,31 +194,31 @@ void loop() {
     int xVal = analogRead(JOYSTICK_X);
     int yVal = analogRead(JOYSTICK_Y);
 
-    if (xVal < 150 && x < WIDTH - 1 &&
-        nodes[x + 1 + y * WIDTH].c != 1) {  // Right
-        if (x == 0) {                       // start point
+    if (xVal < 150 && x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) {  
+        // Right
+        if (x == 0) { // start point
             n = nodes + y * WIDTH;
             n->c = 1;  // set wall
         }
         x++;
         beep(2);
         step_limit--;
-    } else if (xVal > 850 && x > 0 &&
-               nodes[x - 1 + y * WIDTH].c != 1) {  // Left
+    } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {  
+        // Left
         x--;
         beep(1);
         step_limit--;
-    } else if (yVal < 150 && y < HEIGHT - 1 &&
-               nodes[x + (y + 1) * WIDTH].c != 1) {  // Down
-        if (y == 0) {                                // start point
+    } else if (yVal < 150 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {  
+        // Down
+        if (y == 0) { // start point
             n = nodes + x;
             n->c = 1;  // set wall
         }
         y++;
         beep(2);
         step_limit--;
-    } else if (yVal > 850 && y > 0 &&
-               nodes[x + (y - 1) * WIDTH].c != 1) {  // UP
+    } else if (yVal > 850 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {  
+        // UP
         y--;
         beep(1);
         step_limit--;
@@ -253,9 +243,9 @@ void loop() {
         step_limit += 4;
     }
 
-    u8g2.firstPage();  // select the first page of the display (page is
-                       // 128x8px), since we are using the page drawing method
-                       // of the u8g2 library
+    // select the first page of the display (page is 128x8px), 
+    // since we are using the page drawing method of the u8g2 library
+    u8g2.firstPage();  
     do {
         draw();
     } while (u8g2.nextPage());
@@ -282,8 +272,7 @@ void startGame() {
 }
 
 Node* link(Node* n) {
-    // Connect node to a random neigbour
-    //  and return next node
+    // Connect node to a random neigbour and return next node
     byte tx, ty;
     char dir;
     Node* dest;
@@ -351,8 +340,7 @@ Node* link(Node* n) {
             dest->parent = n;
 
             // remove wall
-            nodes[n->x + (tx - n->x) / 2 + (n->y + (ty - n->y) / 2) * WIDTH].c =
-                0;
+            nodes[n->x + (tx - n->x) / 2 + (n->y + (ty - n->y) / 2) * WIDTH].c = 0;
 
             return dest;
         }
