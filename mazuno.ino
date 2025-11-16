@@ -208,7 +208,7 @@ void loop() {
         x--;
         beep(1);
         step_limit--;
-    } else if (yVal < 150 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {  
+    } else if (yVal < 150 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {
         // Down
         if (y == 0) { // start point
             n = nodes + x;
