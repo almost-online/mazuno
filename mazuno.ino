@@ -203,7 +203,7 @@ void loop() {
         x++;
         beep(2);
         step_limit--;
-    } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {  
+    } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {
         // Left
         x--;
         beep(1);
