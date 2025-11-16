@@ -8,8 +8,8 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);  
 #define JOYSTICK_Y A1
 #define BUZZER_PIN 2
 
-#define screen_width 128
-#define screen_height 128
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 128
 
 #define WIDTH 15 // should be odd number
 #define HEIGHT 13 // should be odd number
@@ -17,12 +17,14 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);  
 #define block_size 8
 #define menu_height 14
 #define NODE_COUNT (WIDTH * HEIGHT)
-#define shift_x (screen_width - WIDTH * block_size) / 2
-#define shift_y (screen_height - HEIGHT * block_size)
+#define shift_x (SCREEN_WIDTH - WIDTH * block_size) / 2
+#define shift_y (SCREEN_HEIGHT - HEIGHT * block_size)
 
 #define STEPS_LIMIT 100
 
-#define SNOWMAN 0x2603  /* dec 9731/hex 2603 Snowman */
+#define SNOWMAN 0x2603  /* hex 2603 Snowman */
+#define HEART 0x2605  /* hex 2605 Heart */
+#define STAR 0x2661  /* hex 2661 Star */
 
 
 typedef struct
@@ -51,9 +53,9 @@ void draw() {
 
   //  u8g2.setFont(u8g2_font_unifont_t_symbols);
   u8g2.setFont(u8g2_font_8x13_t_symbols);
-  u8g2.drawGlyph(8, menu_height, SNOWMAN);  /* dec 9731/hex 2603 Snowman */
-  u8g2.drawGlyph(54, menu_height, 0x2605); /* dec 9731/hex 2605 Snowman */
-  u8g2.drawGlyph(94, menu_height, 0x2661); /* dec 9731/hex 2603 Snowman */
+  u8g2.drawGlyph(8, menu_height, SNOWMAN);  /* hex 2603 Snowman */
+  u8g2.drawGlyph(54, menu_height, HEART); /* hex 2605 heart */
+  u8g2.drawGlyph(94, menu_height, STAR); /* hex 2661 star */
 
   u8g2.setCursor(20, menu_height);
   u8g2.print(step_limit > 0 ? step_limit : 0);
@@ -82,18 +84,18 @@ void draw() {
           break;
         case 2:
           //u8g2.drawCircle(n.x*block_size+block_size/2 + shift, menu_height+n.y*block_size+block_size/2, block_size/2-2);
-          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, SNOWMAN); /* dec 9731/hex 2603 Snowman */
+          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, HEART); 
           break;
         case 3:
           //u8g2.drawDisc(n.x*block_size+block_size/2 + shift, menu_height+n.y*block_size+block_size/2, block_size/2-2);
-          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2661); /* hex 2661 Heart */
+          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, STAR); 
           break;
       }
     }
   }
 
-  u8g2.drawGlyph(x * block_size + shift_x + 1, shift_y + (y + 1) * block_size - 1, SNOWMAN); /* dec 9731/hex 2603 Snowman */
-}
+  u8g2.drawGlyph(x * block_size + shift_x + 1, shift_y + (y + 1) * block_size - 1, SNOWMAN);
+}  
 
 void setup() {
   u8g2.begin();           // begin the u8g2 library
