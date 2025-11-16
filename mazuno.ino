@@ -174,7 +174,7 @@ void loop() {
     if (step_limit <= 0) gameOver();
 
     if (score[0] == 0) {
-        score[0] = -1;  // the exist is awaliable
+        score[0] = -1;  // the exit is available
         openExit();
     }
 
