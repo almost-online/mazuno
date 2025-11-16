@@ -86,7 +86,7 @@ void draw() {
           break;
         case 3:
           //u8g2.drawDisc(n.x*block_size+block_size/2 + shift, menu_height+n.y*block_size+block_size/2, block_size/2-2);
-          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2661); /* dec 9731/hex 2603 Snowman */
+          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2661); /* hex 2661 Heart */
           break;
       }
     }
