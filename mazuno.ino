@@ -245,7 +245,7 @@ void loop() {
 
     // select the first page of the display (page is 128x8px), 
     // since we are using the page drawing method of the u8g2 library
-    u8g2.firstPage();  
+    u8g2.firstPage();
     do {
         draw();
     } while (u8g2.nextPage());
