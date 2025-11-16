@@ -149,7 +149,7 @@ void gameOver() {
 
 void openExit() {
     Node* n;
-    // get wall nuber
+    // get wall number
     byte i = random(2, HEIGHT + WIDTH - 1);
     // use for right
     if (i <= HEIGHT) {
