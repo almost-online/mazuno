@@ -292,7 +292,7 @@ Node* link(Node* n) {
         n->dirs &= ~dir;
 
         switch (dir) {
-            // when Right direction is avaliable
+            // when Right direction is available
             case D_RIGHT:
                 if (n->x + 2 < WIDTH) {
                     tx = n->x + 2;
