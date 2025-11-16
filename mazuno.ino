@@ -217,7 +217,7 @@ void loop() {
         y++;
         beep(2);
         step_limit--;
-    } else if (yVal > 850 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {  
+    } else if (yVal > 850 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {
         // UP
         y--;
         beep(1);
