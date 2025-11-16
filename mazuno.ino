@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <U8g2lib.h>  // u8g2 library for drawing on OLED display - needs to be installed in Arduino IDE first
 
-
+// U8G2_SH1107_128X128_1_HW_I2C u8g2(U8G2_R0);  // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
 U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);  // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
 
 #define JOYSTICK_X A0
@@ -14,12 +14,11 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);  
 #define WIDTH 15 // should be odd number
 #define HEIGHT 13 // should be odd number
 
-#define block_size 8
-#define menu_height 14
+#define BLOCK_SIZE 8
+#define MENU_HEIGHT 14
 #define NODE_COUNT (WIDTH * HEIGHT)
-#define shift_x (SCREEN_WIDTH - WIDTH * block_size) / 2
-#define shift_y (SCREEN_HEIGHT - HEIGHT * block_size)
-
+#define SHIFT_X (SCREEN_WIDTH - WIDTH * BLOCK_SIZE) / 2
+#define SHIFT_Y (SCREEN_HEIGHT - HEIGHT * BLOCK_SIZE)
 #define STEPS_LIMIT 100
 
 #define SNOWMAN 0x2603  /* hex 2603 Snowman */
@@ -150,17 +149,17 @@ void openExit() {
   
   Node *n;
   // get wall nuber
-  byte i = random(1, HEIGHT + WIDTH);
+  byte i = random(1, HEIGHT);
   // if even
-  if (i <= WIDTH) {
+  if (i % 2) {
     // x = WIDTH-1, y = i
-    n = nodes + WIDTH - 1 + (i/2) * WIDTH;
+    n = nodes + WIDTH - 1 + i * WIDTH;
     n->c = 0;
     n->dirs = 1;  // Allow UP
 
   } else {
     // get even nuber
-    i = ((1 - WIDTH) / 2) + 1;
+    i = ((random(1, WIDTH) / 2) * 2) + 1;
     // x = i, y = HEIGHT - 1
     n = nodes + i + (HEIGHT - 1) * WIDTH;
     n->c = 0;
