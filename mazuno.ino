@@ -11,16 +11,18 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);  
 #define screen_width 128
 #define screen_height 128
 
-#define width 15 // should be odd number
-#define height 13 // should be odd number
+#define WIDTH 15 // should be odd number
+#define HEIGHT 13 // should be odd number
 
 #define block_size 8
 #define menu_height 14
-#define NODE_COUNT (width * height)
-#define shift_x (screen_width - width * block_size) / 2
-#define shift_y (screen_height - (height)*block_size + block_size / 2)
+#define NODE_COUNT (WIDTH * HEIGHT)
+#define shift_x (screen_width - WIDTH * block_size) / 2
+#define shift_y (screen_height - HEIGHT * block_size)
 
 #define STEPS_LIMIT 100
+
+#define SNOWMAN 0x2603  /* dec 9731/hex 2603 Snowman */
 
 
 typedef struct
@@ -49,8 +51,8 @@ void draw() {
 
   //  u8g2.setFont(u8g2_font_unifont_t_symbols);
   u8g2.setFont(u8g2_font_8x13_t_symbols);
-  u8g2.drawGlyph(8, menu_height, 0x2603);  /* dec 9731/hex 2603 Snowman */
-  u8g2.drawGlyph(54, menu_height, 0x2605); /* dec 9731/hex 2603 Snowman */
+  u8g2.drawGlyph(8, menu_height, SNOWMAN);  /* dec 9731/hex 2603 Snowman */
+  u8g2.drawGlyph(54, menu_height, 0x2605); /* dec 9731/hex 2605 Snowman */
   u8g2.drawGlyph(94, menu_height, 0x2661); /* dec 9731/hex 2603 Snowman */
 
   u8g2.setCursor(20, menu_height);
@@ -67,9 +69,9 @@ void draw() {
   // u8g2.drawBox((width+1)*block_size,  block_size + menu_height, block_size, (height - 1) * block_size);
   u8g2.setFont(u8g2_font_6x12_t_symbols);
 
-  for (i = 0; i < width; i++) {
-    for (j = 0; j < height; j++) {
-      n = nodes[i + j * width];
+  for (i = 0; i < WIDTH; i++) {
+    for (j = 0; j < HEIGHT; j++) {
+      n = nodes[i + j * WIDTH];
       switch (n.c) {
         case 1:
           // if (j == 0)
@@ -80,7 +82,7 @@ void draw() {
           break;
         case 2:
           //u8g2.drawCircle(n.x*block_size+block_size/2 + shift, menu_height+n.y*block_size+block_size/2, block_size/2-2);
-          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, 0x2605); /* dec 9731/hex 2603 Snowman */
+          u8g2.drawGlyph(n.x * block_size + shift_x + 1, shift_y + (n.y + 1) * block_size - 1, SNOWMAN); /* dec 9731/hex 2603 Snowman */
           break;
         case 3:
           //u8g2.drawDisc(n.x*block_size+block_size/2 + shift, menu_height+n.y*block_size+block_size/2, block_size/2-2);
@@ -90,7 +92,7 @@ void draw() {
     }
   }
 
-  u8g2.drawGlyph(x * block_size + shift_x + 1, shift_y + (y + 1) * block_size - 1, 0x2603); /* dec 9731/hex 2603 Snowman */
+  u8g2.drawGlyph(x * block_size + shift_x + 1, shift_y + (y + 1) * block_size - 1, SNOWMAN); /* dec 9731/hex 2603 Snowman */
 }
 
 void setup() {
@@ -146,22 +148,26 @@ void openExit() {
   
   Node *n;
   // get wall nuber
-  byte i = random(1, height);
+  byte i = random(1, HEIGHT + WIDTH);
   // if even
-  if (i % 2) {
-    // x = width-1, y = i
-    n = nodes + width - 1 + i * width;
+  if (i <= WIDTH) {
+    // x = WIDTH-1, y = i
+    n = nodes + WIDTH - 1 + (i/2) * WIDTH;
     n->c = 0;
     n->dirs = 1;  // Allow UP
 
   } else {
     // get even nuber
-    i = ((random(1, width) / 2) * 2) + 1;
-    // x = i, y = height - 1
-    n = nodes + i + (height - 1) * width;
+    i = ((1 - WIDTH) / 2) + 1;
+    // x = i, y = HEIGHT - 1
+    n = nodes + i + (HEIGHT - 1) * WIDTH;
     n->c = 0;
     n->dirs = 8;  // Allow Right
   }
+  // close start point
+  n = nodes + WIDTH;
+  n->c = 1;
+
   beep(18);
 }
 
@@ -175,7 +181,7 @@ void loop() {
   }
 
   // get end
-  if (x == width - 1 || y == height - 1) {
+  if (x == WIDTH - 1 || y == HEIGHT - 1) {
     startGame();
   }
 
