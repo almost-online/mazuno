@@ -272,7 +272,7 @@ void startGame() {
 }
 
 Node* link(Node* n) {
-    // Connect node to a random neigbour and return next node
+    // Connect node to a random neighbor and return next node
     byte tx, ty;
     char dir;
     Node* dest;
