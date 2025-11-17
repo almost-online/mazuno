@@ -1,8 +1,12 @@
 #include <U8g2lib.h>  // u8g2 library for drawing on OLED display - needs to be installed in Arduino IDE first
 #include <Wire.h>
 
-// U8G2_SH1107_128X128_1_HW_I2C u8g2(U8G2_R0);  // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
-U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0,  /* reset=*/U8X8_PIN_NONE); // final display, 128x128px [page buffer, size =128 bytes], HW IIC connection
+U8G2_SH1107_128X128_1_HW_I2C u8g2(
+    U8G2_R0);  // final display, 128x128px [page buffer, size = 128 bytes], HW
+               // IIC connection
+// U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*
+// reset=*/U8X8_PIN_NONE); // final display, 128x128px [page buffer, size = 128
+// bytes], HW IIC connection
 
 #define JOYSTICK_X A0
 #define JOYSTICK_Y A1
@@ -20,11 +24,11 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0,  /* reset=*/U8X8_PIN_NONE); 
 #define SHIFT_X (SCREEN_WIDTH - WIDTH * BLOCK_SIZE) / 2
 #define SHIFT_Y (SCREEN_HEIGHT - HEIGHT * BLOCK_SIZE)
 
-#define STEPS_LIMIT 80
+#define STEPS_LIMIT 100
 
-#define SNOWMAN 0x2603 /* hex 2603 Snowman (☃) */
-#define STAR 0x2605    /* hex 2605 Star (★) */
-#define HEART 0x2661   /* hex 2661 Heart (♡) */
+#define SNOWMAN 0x2603 /* hex 2603 Snowman */
+#define HEART 0x2605   /* hex 2605 Heart */
+#define STAR 0x2661    /* hex 2661 Star */
 
 #define D_RIGHT 1
 #define D_DOWN 2
@@ -32,354 +36,362 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0,  /* reset=*/U8X8_PIN_NONE); 
 #define D_UP 8
 
 typedef struct {
-    byte x, y;     // Node position - less memmory, but faster initialization
-    void* parent;  // link to the parent
-    char c;        // maze symbol, 0-free, 1 - wall, 2-star....
-    char dirs;     // possible direction
+  byte x, y;     // Node position - less memmory, but faster initialization
+  void* parent;  // link to the parent
+  char c;        // maze symbol, 0-free, 1 - wall, 2-star....
+  char dirs;     // possible direction
 } Node;
 
 Node nodes[NODE_COUNT];  // Array of nodes
 
-byte x = 1, y = 0;
+byte x = 0, y = 1;
 byte step_limit = STEPS_LIMIT;
 char score[2] = {0, 0};
 
 void beep(int d = 1) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(d);
-    digitalWrite(BUZZER_PIN, LOW);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(d);
+  digitalWrite(BUZZER_PIN, LOW);
 }
 
 void draw() {
-    byte i, j;
-    Node n;
+  byte i, j;
+  Node n;
 
-    //  u8g2.setFont(u8g2_font_unifont_t_symbols);
-    u8g2.setFont(u8g2_font_8x13_t_symbols);
-    u8g2.drawGlyph(8, MENU_HEIGHT, SNOWMAN);
-    u8g2.drawGlyph(54, MENU_HEIGHT, STAR);
-    u8g2.drawGlyph(94, MENU_HEIGHT, HEART);
+  //  u8g2.setFont(u8g2_font_unifont_t_symbols);
+  u8g2.setFont(u8g2_font_8x13_t_symbols);
+  u8g2.drawGlyph(8, MENU_HEIGHT, SNOWMAN); /* hex 2603 Snowman */
+  u8g2.drawGlyph(54, MENU_HEIGHT, HEART);  /* hex 2605 heart */
+  u8g2.drawGlyph(94, MENU_HEIGHT, STAR);   /* hex 2661 star */
 
-    u8g2.setCursor(20, MENU_HEIGHT);
-    u8g2.print(step_limit > 0 ? step_limit : 0);
-    u8g2.setCursor(64, MENU_HEIGHT);
-    u8g2.print(score[0] > 0 ? score[0] : 0);
-    u8g2.setCursor(104, MENU_HEIGHT);
-    u8g2.print(score[1] > 0 ? score[1] : 0);
+  u8g2.setCursor(20, MENU_HEIGHT);
+  u8g2.print(step_limit > 0 ? step_limit : 0);
+  u8g2.setCursor(64, MENU_HEIGHT);
+  u8g2.print(score[0] > 0 ? score[0] : 0);
+  u8g2.setCursor(104, MENU_HEIGHT);
+  u8g2.print(score[1] > 0 ? score[1] : 0);
 
-    // draw walls
-    u8g2.setFont(u8g2_font_6x12_t_symbols);
+  // draw walls
+  // u8g2.drawBox(0, MENU_HEIGHT, (WIDTH+2)*BLOCK_SIZE, BLOCK_SIZE);
+  // u8g2.drawBox(0, (HEIGHT+1)*BLOCK_SIZE + MENU_HEIGHT, (WIDTH+2)*BLOCK_SIZE,
+  // BLOCK_SIZE); u8g2.drawBox(0, MENU_HEIGHT + 2*BLOCK_SIZE, BLOCK_SIZE,
+  // HEIGHT*BLOCK_SIZE); u8g2.drawBox((WIDTH+1)*BLOCK_SIZE,  BLOCK_SIZE +
+  // MENU_HEIGHT, BLOCK_SIZE, (HEIGHT - 1) * BLOCK_SIZE);
+  u8g2.setFont(u8g2_font_6x12_t_symbols);
 
-    for (i = 0; i < WIDTH; i++) {
-        for (j = 0; j < HEIGHT; j++) {
-            n = nodes[i + j * WIDTH];
-            switch (n.c) {
-                case 1:
-                    // if (j == 0)
-                    //  write half block
-                    //  u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y * BLOCK_SIZE + BLOCK_SIZE / 2, BLOCK_SIZE, BLOCK_SIZE / 2);
-                    // else
-                    u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-                    break;
-                case 2:
-                    u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
-                    break;
-                case 3:
-                    u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
-                    break;
-            }
-        }
+  for (i = 0; i < WIDTH; i++) {
+    for (j = 0; j < HEIGHT; j++) {
+      n = nodes[i + j * WIDTH];
+      switch (n.c) {
+        case 1:
+          // if (j == 0)
+          //  write half block
+          //  u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y *
+          //  BLOCK_SIZE + BLOCK_SIZE / 2, BLOCK_SIZE, BLOCK_SIZE / 2);
+          // else
+          u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+          break;
+        case 2:
+          // u8g2.drawCircle(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X,
+          // MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
+          u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
+          break;
+        case 3:
+          // u8g2.drawDisc(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X,
+          // MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
+          u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
+          break;
+      }
     }
+  }
 
-    u8g2.drawGlyph(x * BLOCK_SIZE + SHIFT_X + 1,
-                   SHIFT_Y + (y + 1) * BLOCK_SIZE - 1, SNOWMAN);
+  u8g2.drawGlyph(x * BLOCK_SIZE + SHIFT_X + 1,
+                 SHIFT_Y + (y + 1) * BLOCK_SIZE - 1, SNOWMAN);
 }
 
 void setup() {
-    u8g2.begin();           // begin the u8g2 library
-    u8g2.setContrast(255);  // set display contrast/brightness
-    u8g2.clearDisplay();
+  u8g2.begin();           // begin the u8g2 library
+  u8g2.setContrast(255);  // set display contrast/brightness
+  u8g2.clearDisplay();
 
-    pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(BUZZER_PIN, LOW);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
 
-    // if analog input pin 0 is unconnected, random analog
-    // noise will cause the call to randomSeed() to generate
-    // different seed numbers each time the sketch runs.
-    // randomSeed() will then shuffle the random function.
-    randomSeed(analogRead(3));
+  // if analog input pin 0 is unconnected, random analog
+  // noise will cause the call to randomSeed() to generate
+  // different seed numbers each time the sketch runs.
+  // randomSeed() will then shuffle the random function.
+  randomSeed(analogRead(3));
 
-    startGame();
-    // openExit();
+  startGame();
+  // openExit();
 }
 
 void gameOver() {
-    u8g2.clearBuffer();
-    u8g2.firstPage();
-    do {
-        u8g2.setFontPosCenter();
-        u8g2.setFont(u8g2_font_ncenB14_tr);
-        u8g2.setCursor(30, 30);
-        u8g2.print(F("Game"));
-        u8g2.setCursor(34, 60);
-        u8g2.print(F("Over!"));
-    } while (u8g2.nextPage());
+  u8g2.clearBuffer();
+  u8g2.firstPage();
+  do {
+    u8g2.setFontPosCenter();
+    u8g2.setFont(u8g2_font_ncenB14_tr);
+    u8g2.setCursor(30, 30);
+    u8g2.print(F("Game"));
+    u8g2.setCursor(34, 60);
+    u8g2.print(F("Over!"));
+  } while (u8g2.nextPage());
 
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(10);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(10);
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(20);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(20);
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(30);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(10);
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(20);
-    digitalWrite(BUZZER_PIN, LOW);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(10);
+  digitalWrite(BUZZER_PIN, LOW);
+  delay(10);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(20);
+  digitalWrite(BUZZER_PIN, LOW);
+  delay(20);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(30);
+  digitalWrite(BUZZER_PIN, LOW);
+  delay(10);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(20);
+  digitalWrite(BUZZER_PIN, LOW);
 
-    delay(5000);
-    x = 0;
-    y = 1;
-    startGame();
+  delay(5000);
+  x = 0;
+  y = 1;
+  startGame();
 }
 
 void openExit() {
-    Node* n;
-    // get wall nuber
-    byte i = random(2, HEIGHT + WIDTH - 1);
-    // use for right
-    if (i <= HEIGHT) {
-        // x = WIDTH-1, y = i
-        i = (((i / 2) * 2) - 1);
-        // get a node left the right wall
-        n = nodes + (WIDTH - 1) + i * WIDTH;
-        n->c = 0;
-        // use for bottom
-    } else {
-        i = ((i / 2) * 2) - HEIGHT;
-        // x = i, y = HEIGHT - 1
-        // get a node above the bottom wall
-        n = nodes + i + (HEIGHT - 1) * WIDTH;
-        n->c = 0;
-    }
+  Node* n;
+  // get wall nuber
+  byte i = random(2, HEIGHT + WIDTH - 1);
+  // use for right
+  if (i <= HEIGHT) {
+    // x = WIDTH-1, y = i
+    i = (((i / 2) * 2) - 1);
+    n = nodes + (WIDTH - 1) + i * WIDTH;
+    n->c = 0;
+    // use for bottom
+  } else {
+    i = ((i / 2) * 2) - HEIGHT;
+    // x = i, y = HEIGHT - 1
+    n = nodes + i + (HEIGHT - 1) * WIDTH;
+    n->c = 0;
+  }
 
-    beep(18);
+  beep(18);
 }
 
 void loop() {
-    if (step_limit <= 0) gameOver();
+  if (step_limit <= 0) gameOver();
 
-    if (score[0] == 0) {
-        score[0] = -1;  // the exist is awaliable
-        openExit();
+  if (score[0] == 0) {
+    score[0] = -1;  // the exist is awaliable
+    openExit();
+  }
+
+  // get end
+  if (x == WIDTH - 1 || y == HEIGHT - 1) {
+    if (x == WIDTH - 1)
+      x = 0;
+    else
+      y = 0;
+
+    startGame();
+  }
+
+  // Joystick Control
+  int xVal = analogRead(JOYSTICK_X);
+  int yVal = analogRead(JOYSTICK_Y);
+  Node* n;
+
+  if (xVal < 150 && x < WIDTH - 1 &&
+      nodes[x + 1 + y * WIDTH].c != 1) {  // Right
+    if (x == 0) {                         // start point
+      n = nodes + y * WIDTH;
+      n->c = 1;  // set wall
     }
-
-    // get end
-    if (x == WIDTH - 1 || y == HEIGHT - 1) {
-        if (x == WIDTH - 1)
-            x = 0;
-        else
-            y = 0;
-
-        beep(8);
-        beep(8);
-        startGame();
+    x++;
+    beep(2);
+    step_limit--;
+  } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {  
+    // Left
+    x--;
+    beep(1);
+    step_limit--;
+  } else if (yVal > 850 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {  
+    // Down
+    if (y == 0) { // start point
+      n = nodes + x;
+      n->c = 1;  // set wall
     }
+    y++;
+    beep(2);
+    step_limit--;
+  } else if (yVal < 150 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {  // UP
+    y--;
+    beep(1);
+    step_limit--;
+  }
 
-    // Joystick Control
-    int xVal = analogRead(JOYSTICK_X);
-    int yVal = analogRead(JOYSTICK_Y);
+  n = nodes + x + y * WIDTH;
+  // when pic the star
+  if (n->c == 2) {
+    score[0]--;
+    beep(4);
+    beep(6);
+    n->c = 0;
+    // when poc the heart
+  } else if (n->c == 3) {
+    score[1]--;
+    beep(6);
+    beep(4);
+    beep(5);
+    n->c = 0;
+    // increase steps
+    step_limit += 4;
+  }
 
-    if (xVal < 150 && x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) {  
-        // Right
-        if (x == 0) { // start point
-            n = nodes + y * WIDTH;
-            n->c = 1;  // set wall
-        }
-        x++;
-        beep(2);
-        step_limit--;
-    } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {  
-        // Left
-        x--;
-        beep(1);
-        step_limit--;
-    } else if (yVal < 150 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {  
-        // Down
-        if (y == 0) { // start point
-            n = nodes + x;
-            n->c = 1;  // set wall
-        }
-        y++;
-        beep(2);
-        step_limit--;
-    } else if (yVal > 850 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {  
-        // UP
-        y--;
-        beep(1);
-        step_limit--;
-    }
+  u8g2.firstPage();  // select the first page of the display (page is 128x8px),
+                     // since we are using the page drawing method of the u8g2
+                     // library
+  do {
+    draw();
+  } while (u8g2.nextPage());
 
-    Node* n;
-    n = nodes + x + y * WIDTH;
-    // when pic the star
-    if (n->c == 2) {
-        score[0]--;
-        beep(4);
-        beep(6);
-        n->c = 0;
-        // when poc the heart
-    } else if (n->c == 3) {
-        score[1]--;
-        beep(6);
-        beep(4);
-        beep(5);
-        n->c = 0;
-        // increase steps
-        step_limit += 4;
-    }
-
-    // select the first page of the display (page is 128x8px), 
-    // since we are using the page drawing method of the u8g2 library
-    u8g2.firstPage();  
-    do {
-        draw();
-    } while (u8g2.nextPage());
-
-    // delay(10);
+  // delay(10);
 }
 
 void startGame() {
-    Node *start, *last;
+  Node *start, *last;
 
-    grid_init();
+  grid_init();
 
-    if (x > 0)
-        start = nodes + x + WIDTH;
-    else
-        start = nodes + 1 + y * WIDTH;
+  if (x > 0)
+    start = nodes + x + WIDTH;
+  else
+    start = nodes + 1 + y * WIDTH;
 
-    start->parent = start;
-    last = start;
-    while ((last = link(last)) != start);
-    // x = 0;
-    // y = 1;
-    step_limit = STEPS_LIMIT;
+  start->parent = start;
+  last = start;
+  while ((last = link(last)) != start);
+  // x = 0;
+  // y = 1;
+  step_limit = STEPS_LIMIT;
 }
 
 Node* link(Node* n) {
-    // Connect node to a random neigbour and return next node
-    byte tx, ty;
-    char dir;
-    Node* dest;
+  // Connect node to a random neigbour
+  //  and return next node
+  byte x_, y_;
+  char dir;
+  Node* dest;
 
-    // Nothing
-    if (n == NULL) return NULL;
+  // Nothing
+  if (n == NULL) return NULL;
 
-    // while an undefined direction exists
-    while (n->dirs) {
-        // select a random way
-        dir = (1 << (random() % 4));
+  // while an undefined direction exists
+  while (n->dirs) {
+    // select a random way
+    dir = (1 << (random() % 4));
 
-        // continue when had discover
-        if (~n->dirs & dir) continue;
+    // continue when had discover
+    if (~n->dirs & dir) continue;
 
-        //  set as discovered
-        n->dirs &= ~dir;
+    //  set as discovered
+    n->dirs &= ~dir;
 
-        switch (dir) {
-            // when Right direction is avaliable
-            case D_RIGHT:
-                if (n->x + 2 < WIDTH) {
-                    tx = n->x + 2;
-                    ty = n->y;
-                } else
-                    continue;
-                break;
+    switch (dir) {
+      // when Right direction is avaliable
+      case D_RIGHT:
+        if (n->x + 2 < WIDTH) {
+          x_ = n->x + 2;
+          y_ = n->y;
+        } else
+          continue;
+        break;
 
-            // Down
-            case D_DOWN:
-                if (n->y + 2 < HEIGHT) {
-                    tx = n->x;
-                    ty = n->y + 2;
-                } else
-                    continue;
-                break;
+      // Down
+      case D_DOWN:
+        if (n->y + 2 < HEIGHT) {
+          x_ = n->x;
+          y_ = n->y + 2;
+        } else
+          continue;
+        break;
 
-            // Left
-            case D_LEFT:
-                if (n->x - 2 >= 0) {
-                    tx = n->x - 2;
-                    ty = n->y;
-                } else
-                    continue;
-                break;
+      // Left
+      case D_LEFT:
+        if (n->x - 2 >= 0) {
+          x_ = n->x - 2;
+          y_ = n->y;
+        } else
+          continue;
+        break;
 
-            // UP
-            case D_UP:
-                if (n->y - 2 >= 0) {
-                    tx = n->x;
-                    ty = n->y - 2;
-                } else
-                    continue;
-                break;
-        }
-
-        // GET node using pointer for speeding up a performance
-        dest = nodes + tx + ty * WIDTH;
-
-        //  Be sure not a wall
-        if (dest->c != 1) {
-            if (dest->parent != NULL) continue;
-
-            // set parent as current node
-            dest->parent = n;
-
-            // remove wall
-            nodes[n->x + (tx - n->x) / 2 + (n->y + (ty - n->y) / 2) * WIDTH].c = 0;
-
-            return dest;
-        }
+      // UP
+      case D_UP:
+        if (n->y - 2 >= 0) {
+          x_ = n->x;
+          y_ = n->y - 2;
+        } else
+          continue;
+        break;
     }
 
-    return n->parent;
+    // GET node using pointer for speeding up a performance
+    dest = nodes + x_ + y_ * WIDTH;
+
+    //  Be sure not a wall
+    if (dest->c != 1) {
+      if (dest->parent != NULL) continue;
+
+      // set parent as current node
+      dest->parent = n;
+
+      // remove wall
+      nodes[n->x + (x_ - n->x) / 2 + (n->y + (y_ - n->y) / 2) * WIDTH].c = 0;
+
+      return dest;
+    }
+  }
+
+  return n->parent;
 }
 
 void grid_init() {
-    int i, j;
-    Node* n;
+  int i, j;
+  Node* n;
 
-    // reset score
-    score[0] = 0;
-    score[1] = 0;
+  // reset score
+  score[0] = 0;
+  score[1] = 0;
 
-    for (i = 0; i < WIDTH; i++) {
-        for (j = 0; j < HEIGHT; j++) {
-            n = nodes + i + j * WIDTH;
-            // set clean way
-            if (i == x && j == y) {
-                n->c = 0;  // clean
-                if (x > 0)
-                    n->dirs = 2;  // Down only
-                else
-                    n->dirs = 1;  // Right only
-            } else if (i * j % 2) {
-                n->c = (random(1, 4) + 1) % 4;
-                if (n->c > 0) score[n->c - 2]++;
+  for (i = 0; i < WIDTH; i++) {
+    for (j = 0; j < HEIGHT; j++) {
+      n = nodes + i + j * WIDTH;
+      // set clean way
+      if (i == x && j == y) {
+        n->c = 0;  // clean
+        if (x > 0)
+          n->dirs = 2;  // Down only
+        else
+          n->dirs = 1;  // Right only
+      } else if (i * j % 2) {
+        n->c = (random(1, 4) + 1) % 4;
+        if (n->c > 0) score[n->c - 2]++;
 
-                n->dirs = 15;
-                // start point
-            } else {
-                n->c = 1;     // wall
-                n->dirs = 0;  // (the) Wall
-            }
-            n->x = i;
-            n->y = j;
-            n->parent = nullptr;
-        }
+        n->dirs = 15;
+        // start point
+      }
+      // start point
+      else {
+        n->c = 1;     // wall
+        n->dirs = 0;  // (the) Wall
+      }
+      n->x = i;
+      n->y = j;
+      n->parent = nullptr;
     }
+  }
 }
