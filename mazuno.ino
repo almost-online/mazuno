@@ -27,8 +27,8 @@ U8G2_SH1107_128X128_1_HW_I2C u8g2(
 #define STEPS_LIMIT 100
 
 #define SNOWMAN 0x2603 /* hex 2603 Snowman */
-#define HEART 0x2605   /* hex 2605 Heart */
-#define STAR 0x2661    /* hex 2661 Star */
+#define STAR 0x2605   /* hex 2605 Star */
+#define HEART 0x2661    /* hex 2661 Heart */
 
 #define D_RIGHT 1
 #define D_DOWN 2
@@ -61,8 +61,8 @@ void draw() {
   //  u8g2.setFont(u8g2_font_unifont_t_symbols);
   u8g2.setFont(u8g2_font_8x13_t_symbols);
   u8g2.drawGlyph(8, MENU_HEIGHT, SNOWMAN); /* hex 2603 Snowman */
-  u8g2.drawGlyph(54, MENU_HEIGHT, HEART);  /* hex 2605 heart */
-  u8g2.drawGlyph(94, MENU_HEIGHT, STAR);   /* hex 2661 star */
+  u8g2.drawGlyph(54, MENU_HEIGHT, STAR);  /* hex 2605 star */
+  u8g2.drawGlyph(94, MENU_HEIGHT, HEART);   /* hex 2661 heart */
 
   u8g2.setCursor(20, MENU_HEIGHT);
   u8g2.print(step_limit > 0 ? step_limit : 0);
@@ -94,19 +94,18 @@ void draw() {
         case 2:
           // u8g2.drawCircle(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X,
           // MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
-          u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
+          u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
           break;
         case 3:
           // u8g2.drawDisc(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X,
           // MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
-          u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
+          u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
           break;
       }
     }
   }
 
-  u8g2.drawGlyph(x * BLOCK_SIZE + SHIFT_X + 1,
-                 SHIFT_Y + (y + 1) * BLOCK_SIZE - 1, SNOWMAN);
+  u8g2.drawGlyph(x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (y + 1) * BLOCK_SIZE - 1, SNOWMAN);
 }
 
 void setup() {
