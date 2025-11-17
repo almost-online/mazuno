@@ -1,12 +1,8 @@
 #include <U8g2lib.h>  // u8g2 library for drawing on OLED display - needs to be installed in Arduino IDE first
 #include <Wire.h>
 
-U8G2_SH1107_128X128_1_HW_I2C u8g2(
-    U8G2_R0);  // final display, 128x128px [page buffer, size = 128 bytes], HW
-               // IIC connection
-// U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*
-// reset=*/U8X8_PIN_NONE); // final display, 128x128px [page buffer, size = 128
-// bytes], HW IIC connection
+//U8G2_SH1107_128X128_1_HW_I2C u8g2(U8G2_R0);  // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
+U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE); // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
 
 #define JOYSTICK_X A0
 #define JOYSTICK_Y A1
