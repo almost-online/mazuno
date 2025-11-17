@@ -2,7 +2,7 @@
 #include <Wire.h>
 
 // U8G2_SH1107_128X128_1_HW_I2C u8g2(U8G2_R0);  // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
-U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE); // final display, 128x128px [page buffer, size =128 bytes], HW IIC connection
+U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0,  /* reset=*/U8X8_PIN_NONE); // final display, 128x128px [page buffer, size =128 bytes], HW IIC connection
 
 #define JOYSTICK_X A0
 #define JOYSTICK_Y A1
@@ -149,7 +149,7 @@ void gameOver() {
 
 void openExit() {
     Node* n;
-    // get wall number
+    // get wall nuber
     byte i = random(2, HEIGHT + WIDTH - 1);
     // use for right
     if (i <= HEIGHT) {
@@ -174,7 +174,7 @@ void loop() {
     if (step_limit <= 0) gameOver();
 
     if (score[0] == 0) {
-        score[0] = -1;  // the exit is available
+        score[0] = -1;  // the exist is awaliable
         openExit();
     }
 
@@ -194,7 +194,7 @@ void loop() {
     int xVal = analogRead(JOYSTICK_X);
     int yVal = analogRead(JOYSTICK_Y);
 
-    if (xVal < 150 && x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) {
+    if (xVal < 150 && x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) {  
         // Right
         if (x == 0) { // start point
             n = nodes + y * WIDTH;
@@ -203,12 +203,12 @@ void loop() {
         x++;
         beep(2);
         step_limit--;
-    } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {
+    } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {  
         // Left
         x--;
         beep(1);
         step_limit--;
-    } else if (yVal < 150 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {
+    } else if (yVal < 150 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {  
         // Down
         if (y == 0) { // start point
             n = nodes + x;
@@ -217,7 +217,7 @@ void loop() {
         y++;
         beep(2);
         step_limit--;
-    } else if (yVal > 850 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {
+    } else if (yVal > 850 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {  
         // UP
         y--;
         beep(1);
@@ -245,7 +245,7 @@ void loop() {
 
     // select the first page of the display (page is 128x8px), 
     // since we are using the page drawing method of the u8g2 library
-    u8g2.firstPage();
+    u8g2.firstPage();  
     do {
         draw();
     } while (u8g2.nextPage());
@@ -272,7 +272,7 @@ void startGame() {
 }
 
 Node* link(Node* n) {
-    // Connect node to a random neighbor and return next node
+    // Connect node to a random neigbour and return next node
     byte tx, ty;
     char dir;
     Node* dest;
@@ -292,7 +292,7 @@ Node* link(Node* n) {
         n->dirs &= ~dir;
 
         switch (dir) {
-            // when Right direction is available
+            // when Right direction is avaliable
             case D_RIGHT:
                 if (n->x + 2 < WIDTH) {
                     tx = n->x + 2;
