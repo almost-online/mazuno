@@ -201,7 +201,7 @@ void loop() {
   int yVal = analogRead(JOYSTICK_Y);
   Node* n;
 
-  if (xVal < 150 && ((x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) || x == (WIDTH - 1))) {
+  if (xVal < 150 && ((x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) || x == WIDTH - 1)) {
     // Right
     if (x == 0) {  // start point
       n = nodes + y * WIDTH;
