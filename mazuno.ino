@@ -25,7 +25,7 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE);  /
 #define SNOWMAN 0x2603 /* hex 2603 Snowman */
 #define STAR 0x2605    /* hex 2605 Star */
 #define HEART 0x2661   /* hex 2661 Heart */
-#define CROSS 0x2617   /* hex 0020 Cross */
+#define CROSS 0x2617   /* hex 2617 Cross */
 
 #define D_RIGHT 1
 #define D_DOWN 2
