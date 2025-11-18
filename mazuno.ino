@@ -2,7 +2,7 @@
 #include <Wire.h>
 
 //U8G2_SH1107_128X128_1_HW_I2C u8g2(U8G2_R0);  // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
-U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE); // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
+U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE);  // final display, 128x128px [page buffer, size = 128 bytes], HW IIC connection
 
 #define JOYSTICK_X A0
 #define JOYSTICK_Y A1
@@ -23,8 +23,9 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE); //
 #define STEPS_LIMIT 100
 
 #define SNOWMAN 0x2603 /* hex 2603 Snowman */
-#define STAR 0x2605   /* hex 2605 Star */
-#define HEART 0x2661    /* hex 2661 Heart */
+#define STAR 0x2605    /* hex 2605 Star */
+#define HEART 0x2661   /* hex 2661 Heart */
+#define CROSS 0x2617   /* hex 0020 Cross */
 
 #define D_RIGHT 1
 #define D_DOWN 2
@@ -42,7 +43,7 @@ Node nodes[NODE_COUNT];  // Array of nodes
 
 byte x = 0, y = 1;
 byte step_limit = STEPS_LIMIT;
-char score[2] = {0, 0};
+char score[2] = { 0, 0 };
 
 void beep(int d = 1) {
   digitalWrite(BUZZER_PIN, HIGH);
@@ -57,8 +58,8 @@ void draw() {
   //  u8g2.setFont(u8g2_font_unifont_t_symbols);
   u8g2.setFont(u8g2_font_8x13_t_symbols);
   u8g2.drawGlyph(8, MENU_HEIGHT, SNOWMAN); /* hex 2603 Snowman */
-  u8g2.drawGlyph(54, MENU_HEIGHT, STAR);  /* hex 2605 star */
-  u8g2.drawGlyph(94, MENU_HEIGHT, HEART);   /* hex 2661 heart */
+  u8g2.drawGlyph(54, MENU_HEIGHT, STAR);   /* hex 2605 star */
+  u8g2.drawGlyph(94, MENU_HEIGHT, HEART);  /* hex 2661 heart */
 
   u8g2.setCursor(20, MENU_HEIGHT);
   u8g2.print(step_limit > 0 ? step_limit : 0);
@@ -88,14 +89,14 @@ void draw() {
           u8g2.drawBox(n.x * BLOCK_SIZE + SHIFT_X, SHIFT_Y + n.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
           break;
         case 2:
-          // u8g2.drawCircle(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X,
-          // MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
           u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, STAR);
           break;
         case 3:
-          // u8g2.drawDisc(n.x*BLOCK_SIZE+BLOCK_SIZE/2 + SHIFT_X,
-          // MENU_HEIGHT+n.y*BLOCK_SIZE+BLOCK_SIZE/2, BLOCK_SIZE/2-2);
           u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, HEART);
+          break;
+        case 4:
+          if (score[0] <= 0)
+            u8g2.drawGlyph(n.x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (n.y + 1) * BLOCK_SIZE - 1, CROSS);
           break;
       }
     }
@@ -186,8 +187,8 @@ void loop() {
   }
 
   // get end
-  if (x == WIDTH - 1 || y == HEIGHT - 1) {
-    if (x == WIDTH - 1)
+  if (x == WIDTH || y == HEIGHT) {
+    if (x == WIDTH)
       x = 0;
     else
       y = 0;
@@ -200,30 +201,31 @@ void loop() {
   int yVal = analogRead(JOYSTICK_Y);
   Node* n;
 
-  if (xVal < 150 && x < WIDTH - 1 &&
-      nodes[x + 1 + y * WIDTH].c != 1) {  // Right
-    if (x == 0) {                         // start point
+  if (xVal < 150 && ((x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) || x == (WIDTH - 1))) {
+    // Right
+    if (x == 0) {  // start point
       n = nodes + y * WIDTH;
-      n->c = 1;  // set wall
+      n->c = 4;  // set cross
     }
     x++;
     beep(2);
     step_limit--;
-  } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {  
+  } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {
     // Left
     x--;
     beep(1);
     step_limit--;
-  } else if (yVal > 850 && y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) {  
+  } else if (yVal > 850 && ((y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) || y == (HEIGHT - 1))) {
     // Down
-    if (y == 0) { // start point
+    if (y == 0) {  // start point
       n = nodes + x;
-      n->c = 1;  // set wall
+      n->c = 4;  // set cross
     }
     y++;
     beep(2);
     step_limit--;
-  } else if (yVal < 150 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {  // UP
+  } else if (yVal < 150 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {
+    // UP
     y--;
     beep(1);
     step_limit--;
@@ -269,7 +271,8 @@ void startGame() {
 
   start->parent = start;
   last = start;
-  while ((last = link(last)) != start);
+  while ((last = link(last)) != start)
+    ;
   // x = 0;
   // y = 1;
   step_limit = STEPS_LIMIT;
