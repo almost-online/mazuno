@@ -15,7 +15,7 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE);  /
 #define HEIGHT 13  // !should be odd number
 
 #define BLOCK_SIZE 8
-#define MENU_HEIGHT 14
+#define MENU_HEIGHT 16
 #define NODE_COUNT (WIDTH * HEIGHT)
 #define SHIFT_X (SCREEN_WIDTH - WIDTH * BLOCK_SIZE) / 2
 #define SHIFT_Y (SCREEN_HEIGHT - HEIGHT * BLOCK_SIZE)
@@ -215,7 +215,7 @@ void loop() {
     x--;
     beep(1);
     step_limit--;
-  } else if (yVal > 850 && ((y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) || y == (HEIGHT - 1))) {
+  } else if (yVal > 850 && ((y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) || y == HEIGHT - 1)) {
     // Down
     if (y == 0) {  // start point
       n = nodes + x;
