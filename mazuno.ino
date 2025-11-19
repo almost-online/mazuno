@@ -6,7 +6,27 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE);  /
 
 #define JOYSTICK_X A0
 #define JOYSTICK_Y A1
+
+#define JOISTICK_ORIENTATION 0  // 0 - default, 1 - swapped X, 2 - swapped Y, 3 - swapped both
+
+#if JOISTICK_ORIENTATION & 1
+#define JOISTIC_RIGHT (analogRead(JOYSTICK_X) > 850)
+#define JOISTIC_LEFT (analogRead(JOYSTICK_X) < 150)
+#else
+#define JOISTIC_RIGHT (analogRead(JOYSTICK_X) < 150)
+#define JOISTIC_LEFT (analogRead(JOYSTICK_X) > 850)
+#endif
+
+#if JOISTICK_ORIENTATION & 2
+#define JOISTIC_UP (analogRead(JOYSTICK_Y) > 850)
+#define JOISTIC_DOWN (analogRead(JOYSTICK_Y) < 150)
+#else
+#define JOISTIC_UP (analogRead(JOYSTICK_Y) < 150)
+#define JOISTIC_DOWN (analogRead(JOYSTICK_Y) > 850)
+#endif
+
 #define BUZZER_PIN 2
+
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 128
@@ -43,7 +63,9 @@ Node nodes[NODE_COUNT];  // Array of nodes
 
 byte x = 0, y = 1;
 byte step_limit = STEPS_LIMIT;
-char score[2] = { 0, 0 };
+char score[4] = { 0, 0, 0 };  // stars, hearts, level, score
+
+unsigned int total_score = 0;
 
 void beep(int d = 1) {
   digitalWrite(BUZZER_PIN, HIGH);
@@ -55,19 +77,7 @@ void draw() {
   byte i, j;
   Node n;
 
-  //  u8g2.setFont(u8g2_font_unifont_t_symbols);
-  u8g2.setFont(u8g2_font_8x13_t_symbols);
-  u8g2.drawGlyph(8, MENU_HEIGHT, SNOWMAN); /* hex 2603 Snowman */
-  u8g2.drawGlyph(54, MENU_HEIGHT, STAR);   /* hex 2605 star */
-  u8g2.drawGlyph(94, MENU_HEIGHT, HEART);  /* hex 2661 heart */
-
-  u8g2.setCursor(20, MENU_HEIGHT);
-  u8g2.print(step_limit > 0 ? step_limit : 0);
-  u8g2.setCursor(64, MENU_HEIGHT);
-  u8g2.print(score[0] > 0 ? score[0] : 0);
-  u8g2.setCursor(104, MENU_HEIGHT);
-  u8g2.print(score[1] > 0 ? score[1] : 0);
-
+  drawHeader();
   // draw walls
   // u8g2.drawBox(0, MENU_HEIGHT, (WIDTH+2)*BLOCK_SIZE, BLOCK_SIZE);
   // u8g2.drawBox(0, (HEIGHT+1)*BLOCK_SIZE + MENU_HEIGHT, (WIDTH+2)*BLOCK_SIZE,
@@ -105,6 +115,21 @@ void draw() {
   u8g2.drawGlyph(x * BLOCK_SIZE + SHIFT_X + 1, SHIFT_Y + (y + 1) * BLOCK_SIZE - 1, SNOWMAN);
 }
 
+void drawHeader() {
+  //  u8g2.setFont(u8g2_font_unifont_t_symbols);
+  u8g2.setFont(u8g2_font_8x13_t_symbols);
+  u8g2.drawGlyph(8, MENU_HEIGHT, SNOWMAN); /* hex 2603 Snowman */
+  u8g2.drawGlyph(64, MENU_HEIGHT, STAR);   /* hex 2605 star */
+  u8g2.drawGlyph(94, MENU_HEIGHT, HEART);  /* hex 2661 heart */
+
+  u8g2.setCursor(20, MENU_HEIGHT);
+  u8g2.print(step_limit > 0 ? step_limit : 0);
+  u8g2.setCursor(74, MENU_HEIGHT);
+  u8g2.print(score[0] > 0 ? score[0] : 0);
+  u8g2.setCursor(104, MENU_HEIGHT);
+  u8g2.print(score[1] > 0 ? score[1] : 0);
+}
+
 void setup() {
   u8g2.begin();           // begin the u8g2 library
   u8g2.setContrast(255);  // set display contrast/brightness
@@ -123,7 +148,70 @@ void setup() {
   // openExit();
 }
 
+void calcScore() {
+  if (score[2]) {
+    while (score[0] > 0 || score[1] > 0 || step_limit > 0) {
+
+      if (step_limit > 0) step_limit--;
+      else if (score[0] > 0) score[0]--;
+      else if (score[1] > 0) score[1]--;
+
+      total_score++;
+
+      u8g2.clearBuffer();
+      u8g2.firstPage();
+
+      do {
+        drawHeader();
+        u8g2.setFont(u8g2_font_8x13_t_symbols);
+        u8g2.setCursor(16, MENU_HEIGHT + 30);
+        u8g2.print(F("Total score:"));
+        u8g2.setFont(u8g2_font_ncenB14_tr);
+        u8g2.setCursor(50, MENU_HEIGHT + 60);
+        u8g2.print(total_score);
+        u8g2.setCursor(30, MENU_HEIGHT + 90);
+        u8g2.print(F("Level: "));
+        u8g2.print(score[2] + 0);
+      } while (u8g2.nextPage());
+
+      beep(1);
+      // delay(10);
+    }
+
+    delay(1000);
+  }
+}
+
+void drawStartLevel() {
+  calcScore();
+
+  u8g2.clearBuffer();
+  u8g2.firstPage();
+  do {
+    u8g2.setFont(u8g2_font_ncenB14_tr);
+    u8g2.setCursor(30, 30);
+    u8g2.print(F("Level: "));
+    u8g2.print(score[2] + 1);
+
+    if (total_score > 0) {
+      u8g2.setFont(u8g2_font_7x13_t_symbols);
+      u8g2.setCursor(4, 60);
+      u8g2.print(F("Total score: "));
+      u8g2.print(total_score);
+    }
+  } while (u8g2.nextPage());
+
+
+  beep(3);
+  delay(20);
+  beep(1);
+  delay(2000);
+}
+
+
 void gameOver() {
+  calcScore();
+
   u8g2.clearBuffer();
   u8g2.firstPage();
   do {
@@ -133,27 +221,36 @@ void gameOver() {
     u8g2.print(F("Game"));
     u8g2.setCursor(34, 60);
     u8g2.print(F("Over!"));
+    u8g2.setFont(u8g2_font_8x13_t_symbols);
+    u8g2.setCursor(30, 80);
+    u8g2.print(F("Level: "));
+    u8g2.print(score[2] + 0);
+    u8g2.setFont(u8g2_font_7x13_t_symbols);
+    u8g2.setCursor(3, 100);
+    u8g2.print(F("Total score: "));
+    u8g2.print(total_score);
   } while (u8g2.nextPage());
 
-  digitalWrite(BUZZER_PIN, HIGH);
+  beep(1);
   delay(10);
-  digitalWrite(BUZZER_PIN, LOW);
+  beep(1);
+  delay(20);
+  beep(30);
+  delay(20);
+  beep(1);
   delay(10);
-  digitalWrite(BUZZER_PIN, HIGH);
+  beep(1);
   delay(20);
-  digitalWrite(BUZZER_PIN, LOW);
-  delay(20);
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(30);
-  digitalWrite(BUZZER_PIN, LOW);
-  delay(10);
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(20);
-  digitalWrite(BUZZER_PIN, LOW);
+  beep(30);
 
-  delay(5000);
+  delay(6000);
   x = 0;
   y = 1;
+  total_score = 0;
+  step_limit = 0;
+  score[0] = 0;
+  score[1] = 0;
+  score[2] = 0;
   startGame();
 }
 
@@ -196,35 +293,32 @@ void loop() {
     startGame();
   }
 
-  // Joystick Control
-  int xVal = analogRead(JOYSTICK_X);
-  int yVal = analogRead(JOYSTICK_Y);
   Node* n;
 
-  if (xVal < 150 && ((x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) || x == WIDTH - 1)) {
+  if (JOISTIC_RIGHT && ((x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) || x == WIDTH - 1)) {
     // Right
     if (x == 0) {  // start point
       n = nodes + y * WIDTH;
       n->c = 4;  // set cross
     }
     x++;
-    beep(2);
+    beep(1);
     step_limit--;
-  } else if (xVal > 850 && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {
+  } else if (JOISTIC_LEFT && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {
     // Left
     x--;
     beep(1);
     step_limit--;
-  } else if (yVal > 850 && ((y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) || y == HEIGHT - 1)) {
+  } else if (JOISTIC_DOWN && ((y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) || y == HEIGHT - 1)) {
     // Down
     if (y == 0) {  // start point
       n = nodes + x;
       n->c = 4;  // set cross
     }
     y++;
-    beep(2);
+    beep(1);
     step_limit--;
-  } else if (yVal < 150 && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {
+  } else if (JOISTIC_UP && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {
     // UP
     y--;
     beep(1);
@@ -235,15 +329,15 @@ void loop() {
   // when pic the star
   if (n->c == 2) {
     score[0]--;
-    beep(4);
-    beep(6);
+    beep(2);
+    beep(1);
     n->c = 0;
-    // when poc the heart
+    // when pic the heart
   } else if (n->c == 3) {
     score[1]--;
-    beep(6);
-    beep(4);
-    beep(5);
+    beep(1);
+    beep(2);
+    beep(1);
     n->c = 0;
     // increase steps
     step_limit += 4;
@@ -261,7 +355,7 @@ void loop() {
 
 void startGame() {
   Node *start, *last;
-
+  drawStartLevel();
   grid_init();
 
   if (x > 0)
@@ -364,9 +458,11 @@ void grid_init() {
   // reset score
   score[0] = 0;
   score[1] = 0;
+  score[2]++;
 
-  for (i = 0; i < WIDTH; i++) {
-    for (j = 0; j < HEIGHT; j++) {
+  // init from end to start
+  for (i = WIDTH - 1; i >= 0; i--) {
+    for (j = HEIGHT - 1; j >= 0; j--) {
       n = nodes + i + j * WIDTH;
       // set clean way
       if (i == x && j == y) {
@@ -377,13 +473,19 @@ void grid_init() {
           n->dirs = 1;  // Right only
       } else if (i * j % 2) {
         n->c = (random(1, 4) + 1) % 4;
-        if (n->c > 0) score[n->c - 2]++;
+
+        if (n->c > 0) {
+          if (n->c == 2 && score[0] < score[2])
+            score[0]++;
+          else if (n->c == 3 && score[1] < 2 * score[2])
+            score[1]++;
+          else
+            n->c = 0;
+        };
 
         n->dirs = 15;
         // start point
-      }
-      // start point
-      else {
+      } else {
         n->c = 1;     // wall
         n->dirs = 0;  // (the) Wall
       }
