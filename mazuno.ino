@@ -63,7 +63,7 @@ Node nodes[NODE_COUNT];  // Array of nodes
 
 byte x = 0, y = 1;
 byte step_limit = STEPS_LIMIT;
-char score[4] = { 0, 0, 0 };  // stars, hearts, level, score
+char score[3] = { 0, 0, 0 };  // stars, hearts, level, score
 
 unsigned int total_score = 0;
 
