@@ -17,9 +17,13 @@ Arduino uno random maze game
 ![image](https://github.com/user-attachments/assets/04ce9575-4d35-4b29-b32e-e3587c632e11)
 
 
-   Start Game | Exit unlocked
+   Start Game | Exit unlocked | 
 :-------------------------:|:-------------------------:
 ![image](https://github.com/user-attachments/assets/cc7d3fed-8caf-4516-bf1d-1268fd7119c6) | ![image](https://github.com/user-attachments/assets/279201a9-d9a5-447a-9980-0fec78df80e1)
+
+
+
+<img width="281" height="311" alt="image" src="https://github.com/user-attachments/assets/96e94ec1-39de-4ccb-bf2d-1c5e02e335a1" />
 
 
 
