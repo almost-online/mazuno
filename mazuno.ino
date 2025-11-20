@@ -7,22 +7,22 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE);  /
 #define JOYSTICK_X A0
 #define JOYSTICK_Y A1
 
-#define JOISTICK_ORIENTATION 0  // 0 - default, 1 - swapped X, 2 - swapped Y, 3 - swapped both
+#define JOYSTICK_ORIENTATION 0  // 0 - default, 1 - swapped X, 2 - swapped Y, 3 - swapped both
 
-#if JOISTICK_ORIENTATION & 1
-#define JOISTIC_RIGHT (analogRead(JOYSTICK_X) > 850)
-#define JOISTIC_LEFT (analogRead(JOYSTICK_X) < 150)
+#if JOYSTICK_ORIENTATION & 1
+#define JOYSTICK_RIGHT (xVal > 850)
+#define JOYSTICK_LEFT (xVal < 150)
 #else
-#define JOISTIC_RIGHT (analogRead(JOYSTICK_X) < 150)
-#define JOISTIC_LEFT (analogRead(JOYSTICK_X) > 850)
+#define JOYSTICK_RIGHT (xVal < 150)
+#define JOYSTICK_LEFT (xVal > 850)
 #endif
 
-#if JOISTICK_ORIENTATION & 2
-#define JOISTIC_UP (analogRead(JOYSTICK_Y) > 850)
-#define JOISTIC_DOWN (analogRead(JOYSTICK_Y) < 150)
+#if JOYSTICK_ORIENTATION & 2
+#define JOYSTICK_UP (yVal > 850)
+#define JOYSTICK_DOWN (yVal < 150)
 #else
-#define JOISTIC_UP (analogRead(JOYSTICK_Y) < 150)
-#define JOISTIC_DOWN (analogRead(JOYSTICK_Y) > 850)
+#define JOYSTICK_UP (yVal < 150)
+#define JOYSTICK_DOWN (yVal > 850)
 #endif
 
 #define BUZZER_PIN 2
@@ -52,6 +52,9 @@ U8G2_SH1107_PIMORONI_128X128_1_HW_I2C u8g2(U8G2_R0, /*reset=*/U8X8_PIN_NONE);  /
 #define D_LEFT 4
 #define D_UP 8
 
+#define MAX_BOARD_SIZE 5
+#define NO_PARENT 255
+
 typedef struct {
   byte x, y;     // Node position - less memmory, but faster initialization
   void* parent;  // link to the parent
@@ -61,11 +64,18 @@ typedef struct {
 
 Node nodes[NODE_COUNT];  // Array of nodes
 
+typedef struct {
+  char.level;
+  unsigned int score;
+} ScoreBoard;
+
+ScoreBoard scoreboard[MAX_BOARD_SIZE] = {};
+
 byte x = 0, y = 1;
 byte step_limit = STEPS_LIMIT;
-char score[3] = { 0, 0, 0 };  // stars, hearts, level, score
+char score[2] = { 0, 0 };  // stars, hearts
 
-unsigned int total_score = 0;
+ScoreBoard total_score = {0, 0};
 
 void beep(int d = 1) {
   digitalWrite(BUZZER_PIN, HIGH);
@@ -78,12 +88,7 @@ void draw() {
   Node n;
 
   drawHeader();
-  // draw walls
-  // u8g2.drawBox(0, MENU_HEIGHT, (WIDTH+2)*BLOCK_SIZE, BLOCK_SIZE);
-  // u8g2.drawBox(0, (HEIGHT+1)*BLOCK_SIZE + MENU_HEIGHT, (WIDTH+2)*BLOCK_SIZE,
-  // BLOCK_SIZE); u8g2.drawBox(0, MENU_HEIGHT + 2*BLOCK_SIZE, BLOCK_SIZE,
-  // HEIGHT*BLOCK_SIZE); u8g2.drawBox((WIDTH+1)*BLOCK_SIZE,  BLOCK_SIZE +
-  // MENU_HEIGHT, BLOCK_SIZE, (HEIGHT - 1) * BLOCK_SIZE);
+
   u8g2.setFont(u8g2_font_6x12_t_symbols);
 
   for (i = 0; i < WIDTH; i++) {
@@ -152,11 +157,22 @@ void calcScore() {
   if (score[2]) {
     while (score[0] > 0 || score[1] > 0 || step_limit > 0) {
 
-      if (step_limit > 0) step_limit--;
-      else if (score[0] > 0) score[0]--;
-      else if (score[1] > 0) score[1]--;
+      if (step_limit > 0) {
+        step_limit--;
+        total_score.score++;
+      }
+      // stars
+      else if (score[0] > 0) {
+        score[0]--;
+        if (total_score.score > 0)
+            total_score.score--;
+      }
+      // extra lives
+      else if (score[1] > 0) {
+        total_score.score += 2;
+        score[1]--;
+      }
 
-      total_score++;
 
       u8g2.clearBuffer();
       u8g2.firstPage();
@@ -178,8 +194,25 @@ void calcScore() {
       // delay(10);
     }
 
+    // write score to scoreboard
+    writeScore(total_score);
+
     delay(1000);
   }
+}
+
+void writeScore(ScoreBoard total_score) {
+  char cur_size = sizeof(scoreboard) / sizeof(ScoreBoard);
+  char i = 0;
+
+  if (cur_size > 0) {
+    for (i = cur_size - 1; i >= 0; i--) {
+      if (scoreboard[i].score > total_score.score) break;
+      scoreboard[i + 1] = scoreboard[i];
+    }
+  }
+  
+  scoreboard[i+0] = total_score;
 }
 
 void drawStartLevel() {
@@ -207,7 +240,6 @@ void drawStartLevel() {
   beep(1);
   delay(2000);
 }
-
 
 void gameOver() {
   calcScore();
@@ -293,9 +325,12 @@ void loop() {
     startGame();
   }
 
+  // Joystick Control
+  int xVal = analogRead(JOYSTICK_X);
+  int yVal = analogRead(JOYSTICK_Y);
   Node* n;
 
-  if (JOISTIC_RIGHT && ((x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) || x == WIDTH - 1)) {
+  if (JOYSTICK_RIGHT && ((x < WIDTH - 1 && nodes[x + 1 + y * WIDTH].c != 1) || x == WIDTH - 1)) {
     // Right
     if (x == 0) {  // start point
       n = nodes + y * WIDTH;
@@ -304,12 +339,12 @@ void loop() {
     x++;
     beep(1);
     step_limit--;
-  } else if (JOISTIC_LEFT && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {
+  } else if (JOYSTICK_LEFT && x > 0 && nodes[x - 1 + y * WIDTH].c != 1) {
     // Left
     x--;
     beep(1);
     step_limit--;
-  } else if (JOISTIC_DOWN && ((y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) || y == HEIGHT - 1)) {
+  } else if (JOYSTICK_DOWN && ((y < HEIGHT - 1 && nodes[x + (y + 1) * WIDTH].c != 1) || y == HEIGHT - 1)) {
     // Down
     if (y == 0) {  // start point
       n = nodes + x;
@@ -318,7 +353,7 @@ void loop() {
     y++;
     beep(1);
     step_limit--;
-  } else if (JOISTIC_UP && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {
+  } else if (JOYSTICK_UP && y > 0 && nodes[x + (y - 1) * WIDTH].c != 1) {
     // UP
     y--;
     beep(1);
@@ -458,7 +493,7 @@ void grid_init() {
   // reset score
   score[0] = 0;
   score[1] = 0;
-  score[2]++;
+  total_score.level++;
 
   // init from end to start
   for (i = WIDTH - 1; i >= 0; i--) {
