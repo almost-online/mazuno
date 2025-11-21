@@ -40,7 +40,7 @@ typedef struct {
   byte x: 5;     // Node position - less memmory, but faster initialization
   byte y : 5;     // Node position - less memmory, but faster initialization
   void* parent;  // link to the parent
-byte c : 3;  // maze symbol (0-4), needs 3 bits
+  byte c : 3;  // maze symbol (0-4), needs 3 bits
   byte dirs : 5;    // directions (0-15), needs 4 bits
 } Node;
 
